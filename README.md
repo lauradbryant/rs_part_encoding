@@ -72,7 +72,7 @@ the master instance or not. To make the file sen_x1_1.csv the master file for in
 sen_x1 as`sen_x1=Part('sen_x1_1.csv)` and to check if sen_x1_2.csv is an instance of sen_x1, call 
 `sen_x1.check_candidate('sen_x2_1.csv')`.
 
-If you do not already have reedsolo installed, install it by running pip install reedsolo within the project directory. The documentation for the reedsolo library is here https://pypi.org/project/reedsolo/#basic-usage-with-high-level-rscodec-class. 
+If you do not already have reedsolo installed, install it by running 'pip install reedsolo' within the project directory. The documentation for the reedsolo library is here https://pypi.org/project/reedsolo/#basic-usage-with-high-level-rscodec-class. 
 
 
 
