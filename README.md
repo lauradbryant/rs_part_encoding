@@ -51,21 +51,21 @@ as the master decode successfully and instances that are of a different part typ
 
 ## Challenges
 The main challenge that was faced while working on this project was realizing that the data type that was required to 
-be passed to the reedsolo.py library functions was, in our case, much more limited than the documentation for the 
+be passed to the reedsolo python library functions was, in our case, much more limited than the documentation for the 
 library claimed. While the library advertised being able to work with both strings and bytearrays, we found neither of 
 these general categories to work without errors. The problem with passing in a string in our case is that the library 
 converts the string to a bytearray and uses the ASCII values for integers in this conversion. While this could be 
-accounted for if we were only interfacing with reedsolo.py once, we interface with it multiple times. The library 
+accounted for if we were only interfacing with reedsolo once, we interface with it multiple times. The library 
 returns check numbers that are multiple digits long and the delineations between these numbers must be preserved when 
 being passed back and forth between our code and the library which is impossible using the string data type and the 
 method for string to bytearray conversion being used. Although it seems like we should be able to work in bytearrays 
-when passing data back and forth, using bytearrays ended up with errors being thrown within the reedsolo.py library. 
-Ultimately we discovered that the library had overwritten the data type to account for the out of range errors that 
+when passing data back and forth, using bytearrays ended up with errors being thrown within the reedsolo library. 
+Upon further inspection of the code, we discovered that the library had overwritten the data type to account for the out of range errors that 
 were being thrown but did not convert all incoming data to the appropriate new format. The solution to this problem of 
-the data type was solved by copying the code used in reedsolo.py to overwrite the bytearray data type to the top of 
+the data type was solved by copying the code used in reedsolo to overwrite the bytearray data type to the top of 
 our file so that we store our data in their special format throughout the process.
 
-## Using
+## Using rs_part_encoding
 
 This code can be used to check if the data from piezoelectric signatures stored in csv files is of the same type as 
 the master instance or not. To make the file sen_x1_1.csv the master file for instances of the sen_x1 part initialize 
