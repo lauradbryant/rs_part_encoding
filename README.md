@@ -9,7 +9,7 @@ Since the creation of many parts is outsourced, these objects are vulnerable to 
 products of lesser quality or being tampered with before they are integrated. If security measures are not taken to 
 ensure that the components of planes and other devices are legitimate, people and systems are put at risk. 
 The security measures currently in practice include barcodes and serial numbers which can be cheaply copied onto a 
-counterfeit part and still allow forthe product to be altered. A physically unclonable function that can identify an 
+counterfeit part and still allow for the product to be altered. A physically unclonable function that can identify an 
 authentic part would be a much more secure method to ensure the integrity of a product throughout its transport and 
 usage. Piezoelectric signatures appear to be a promising solution, as each instance of a part has a unique impedance 
 identity. This is due to the fact that there is slight variation in the process of manufacturing a part, the way that 
