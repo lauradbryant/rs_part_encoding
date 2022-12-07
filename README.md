@@ -33,7 +33,7 @@ This allows for a certain number of points to be omitted and the same function s
 process of determining if there are minimal enough values in the data that can be omitted or changed in order for the 
 same function to pass through every remaining data point. In more technical terms, a message is encoded as a polynomial 
 $p(x)$ such that $p_x(\alpha_i) = x_i$ for all $i=1,2,3,….k$ where $k$ is the length of the data. $p(x)$ is then 
-multiplied with a generator polynomial $g(x) = (x- \alpha)(x- \alpha^2)(x- \alpha^3) \dots (x- \alpha^{2t})$. The the 
+multiplied with a generator polynomial $g(x) = (x- \alpha)(x- \alpha^2)(x- \alpha^3) \dots (x- \alpha^{2t})$. The  
 values that are ultimately sent are the coefficients of $s(x)$ where $s(x) = p(x) \cdot g(x)$. If $r(x)$ is recieved 
 then the remainder of $r(x)/g(x)$ is computed. If it is zero, then $s(x)$ was recieved. If not, $p(x) \cdot g(x) + e(x)$ 
 where $e(x)$ is an error polynomial. The primary disadvantage that Reed-Solomon codes present is that they only detect 
