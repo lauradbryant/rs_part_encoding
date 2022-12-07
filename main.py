@@ -1,4 +1,5 @@
 import csv
+import random
 from reedsolo import RSCodec
 
 # Half of this many digits can be different across instances of the same part
@@ -121,7 +122,7 @@ class Part:
         :param candidate_csv_file_name: The name of the csv file that we want to check the differences between.
         :return: The integer number of differences between the two data sets.
         """
-        candidate = Instance(candidate_csv_file_name, self.master.check_digits)
+        candidate = Instance(candidate_csv_file_name)
         num_diff = 0
         for i in range(len(self.master.data)):
             if self.master.data[i] != candidate.data[i]:
@@ -131,36 +132,60 @@ class Part:
 
 def main():
     # Initialize the testing data
-    same_type = ['sen_x1_1.csv', 'sen_x1_2.csv', 'sen_x1_3.csv', 'sen_x1_4.csv', 'sen_x1_5.csv']
-    diff_type = ['sen_x2_1.csv', 'sen_x2_2.csv', 'sen_x2_3.csv', 'sen_x2_4.csv', 'sen_x2_5.csv']
-    master = Part(same_type[0])
+    part_1 = ['sen_x1_1.csv', 'sen_x1_2.csv', 'sen_x1_3.csv', 'sen_x1_4.csv', 'sen_x1_5.csv']
+    part_2 = ['sen_x2_1.csv', 'sen_x2_2.csv', 'sen_x2_3.csv', 'sen_x2_4.csv', 'sen_x2_5.csv']
+    part_3 = ['sen_x3_1.csv', 'sen_x3_2.csv', 'sen_x3_3.csv', 'sen_x3_4.csv', 'sen_x3_5.csv']
+    part_4 = ['sen_x4_1.csv', 'sen_x4_2.csv', 'sen_x4_3.csv', 'sen_x4_4.csv', 'sen_x4_5.csv']
+    part_5 = ['sen_x5_1.csv', 'sen_x5_2.csv', 'sen_x5_3.csv', 'sen_x5_4.csv', 'sen_x5_5.csv']
+    tests = [part_1, part_2, part_3, part_4, part_5]
 
-    # Find the minimum and maximum values for CHECK
-    min_check = 0
-    max_check = 5000
-    for instance in same_type:
-        num_diff = master.num_differences(instance)
-        if 2 * num_diff > min_check:
-            min_check = 2 * num_diff
-    for instance in diff_type:
-        num_diff = master.num_differences(instance)
-        if 2 * num_diff < max_check:
-            max_check = 2 * num_diff
-    print("CHECK should be between " + str(min_check) + " and " + str(max_check) +
-          ". It is currently set to " + str(CHECK) + ".")
+    # Count passed and failed tests
+    passed_tests = 0
+    failed_tests = 0
 
-    # Test Cases
-    for instance in same_type:
-        if master.check_candidate(instance):
-            print("Test case " + instance + " passed.")
-        else:
-            print("Test case " + instance + " failed.")
+    # Run Test Cases
+    for part in tests:
+        master_name = part[random.randint(0, len(part) - 1)]
+        master = Part(master_name)
+        print("\nTesting with " + str(master_name) + " as master.")
 
-    for instance in diff_type:
-        if not master.check_candidate(instance):
-            print("Test case " + instance + " passed.")
-        else:
-            print("Test case " + instance + " failed.")
+        # Find the minimum and maximum values for CHECK
+        min_check = 0
+        max_check = 5000
+        for instance in part:
+            num_diff = master.num_differences(instance)
+            if 2 * num_diff > min_check:
+                min_check = 2 * num_diff
+        for diff_part in tests:
+            if diff_part != part:
+                for instance in diff_part:
+                    num_diff = master.num_differences(instance)
+                    if 2 * num_diff < max_check:
+                        max_check = 2 * num_diff
+        print("CHECK should be between " + str(min_check) + " and " + str(max_check) +
+              ". It is currently set to " + str(CHECK) + ".")
+
+        # Check that all instances of this part decode correctly
+        for instance in part:
+            if master.check_candidate(instance):
+                print("Test case " + instance + " passed.")
+                passed_tests += 1
+            else:
+                print("TEST CASE " + instance + " FAILED.")
+                failed_tests += 1
+
+        # Check that a random instance of each of the other parts does not decode to the master
+        for diff_part in tests:
+            if diff_part != part:
+                instance = diff_part[random.randint(0, len(diff_part) - 1)]
+                if not master.check_candidate(instance):
+                    print("Test case " + instance + " passed.")
+                    passed_tests += 1
+                else:
+                    print("TEST CASE " + instance + " FAILED.")
+                    failed_tests += 1
+
+    print("Failed " + str(failed_tests) + " tests. Passed " + str(passed_tests) + ".")
 
 
 if __name__ == '__main__':
