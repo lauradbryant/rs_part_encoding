@@ -35,7 +35,7 @@ same function to pass through every remaining data point. In more technical term
 $p(x)$ such that $p_x(\alpha_i) = x_i$ for all $i=1,2,3,….k$ where $k$ is the length of the data. $p(x)$ is then 
 multiplied with a generator polynomial $g(x) = (x- \alpha)(x- \alpha^2)(x- \alpha^3) \dots (x- \alpha^{2t})$. The  
 values that are ultimately sent are the coefficients of $s(x)$ where $s(x) = p(x) \cdot g(x)$. If $r(x)$ is received 
-then the remainder of $r(x)/g(x)$ is computed. If it is zero, then $s(x)$ was recieved. If not, $p(x) \cdot g(x) + e(x)$ 
+then the remainder of $r(x)/g(x)$ is computed. If it is zero, then $s(x)$ was received. If not, $r(x) = p(x) \cdot g(x) + e(x)$ 
 where $e(x)$ is an error polynomial. The primary disadvantage that Reed-Solomon codes present is that they only detect 
 when two digits are different regardless of how different they are. For example, they make no distinction between the 
 comparison between the digits 5 and 6 and the comparison between 3 and 9. In our case, we want to see if two data sets 
