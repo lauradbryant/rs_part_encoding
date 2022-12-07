@@ -32,13 +32,12 @@ points where x is the position of the data in the file and y is the data and the
 what y value would be required if the function were to continue on to successive x values. This allows for a certain 
 number of points to be omitted and the same function still be computed. Decoding is then a process of determining if 
 there are minimal enough values in the data that can be omitted or changed in order for the same function to pass 
-through every remaining data point. In more technical terms, a message is encoded as a polynomial, say $p(x), and 
-then multiplied with a generator polynomial $g(x) = (x- \alpha)(x- \alpha 2)(x- \alpha 3) \dots (x- alpha 2t)$. 
-
-Then we map the message vector[x1,x2,…..,xk] to a polynomial p(x) of degree<k such that 
-px(αi) = xi for all i=1,2,3,….k
-
-The primary disadvantage that Reed-Solomon codes present is that they only detect 
+through every remaining data point. In more technical terms, a message is encoded as a polynomial $p(x)$ such that 
+$p_x(\alpha_i) = x_i$ for all $i=1,2,3,….k$ where $k$ is the length of the data. $p(x)$ is then multiplied with a 
+generator polynomial $g(x) = (x- \alpha)(x- \alpha 2)(x- \alpha 3) \dots (x- \alpha 2t)$. The the values that are 
+ultimately sent are the coefficients of $s(x)$ where $s(x) = $p(x) \cdot g(x)$. If $r(x)$ is recieved then the 
+remainder of $r(x)/g(x)$ is computed. If it is zero, then $s(x)$ was recieved. If not, $p(x) \cdot g(x) + e(x)$ 
+where $e(x)$ is an error polynomial. The primary disadvantage that Reed-Solomon codes present is that they only detect 
 when two digits are different regardless of how different they are. For example, they make no distinction between the 
 comparison between the digits 5 and 6 and the comparison between 3 and 9. In our case, we want to see if two data sets 
 are close enough to be considered the same, so lacking the feature of knowing which numbers are closer and farther is 
