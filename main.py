@@ -132,12 +132,31 @@ class Part:
 
 def main():
     # Initialize the testing data
-    part_1 = ['sen_x1_1.csv', 'sen_x1_2.csv', 'sen_x1_3.csv', 'sen_x1_4.csv', 'sen_x1_5.csv']
-    part_2 = ['sen_x2_1.csv', 'sen_x2_2.csv', 'sen_x2_3.csv', 'sen_x2_4.csv', 'sen_x2_5.csv']
-    part_3 = ['sen_x3_1.csv', 'sen_x3_2.csv', 'sen_x3_3.csv', 'sen_x3_4.csv', 'sen_x3_5.csv']
-    part_4 = ['sen_x4_1.csv', 'sen_x4_2.csv', 'sen_x4_3.csv', 'sen_x4_4.csv', 'sen_x4_5.csv']
-    part_5 = ['sen_x5_1.csv', 'sen_x5_2.csv', 'sen_x5_3.csv', 'sen_x5_4.csv', 'sen_x5_5.csv']
-    tests = [part_1, part_2, part_3, part_4, part_5]
+    container_1  = ['container/con_Ax1_1.csv', 'container/con_Ax1_2.csv', 'container/con_Ax1_3.csv',
+                    'container/con_Ax1_4.csv', 'container/con_Ax1_5.csv']
+    container_2 = ['container/con_Bx2_1.csv', 'container/con_Bx2_2.csv', 'container/con_Bx2_3.csv',
+                   'container/con_Bx2_4.csv', 'container/con_Bx2_5.csv', 'container/con_Bx2_6.csv',
+                   'container/con_Bx2_7.csv', 'container/con_Bx2_8.csv', 'container/con_Bx2_9.csv']
+    container_3 = ['container/con_Cx3_1.csv', 'container/con_Cx3_2.csv', 'container/con_Cx3_3.csv',
+                   'container/con_Cx3_4.csv', 'container/con_Cx3_5.csv']
+    lid_1 = ['lid/lid_Ax4_1.csv', 'lid/lid_Ax4_2.csv', 'lid/lid_Ax4_3.csv', 'lid/lid_Ax4_4.csv', 'lid/lid_Ax4_5.csv']
+    lid_2 = ['lid/lid_Bx5_1.csv', 'lid/lid_Bx5_2.csv', 'lid/lid_Bx5_3.csv', 'lid/lid_Bx5_4.csv', 'lid/lid_Bx5_5.csv',
+             'lid/lid_Bx5_6.csv', 'lid/lid_Bx5_7.csv', 'lid/lid_Bx5_8.csv', 'lid/lid_Bx5_9.csv']
+    lid_3 = ['lid/lid_Cx6_1.csv', 'lid/lid_Cx6_2.csv', 'lid/lid_Cx6_3.csv', 'lid/lid_Cx6_4.csv', 'lid/lid_Cx6_5.csv']
+    tube = ['tube/tube_Dx7_1.csv', 'tube/tube_Dx7_2.csv', 'tube/tube_Dx7_3.csv', 'tube/tube_Dx7_4.csv',
+            'tube/tube_Dx7_5.csv']
+    damaged_tube = ['tube/tube_Dx7_1_damage.csv', 'tube/tube_Dx7_2_damage.csv', 'tube/tube_Dx7_3_damage.csv']
+    sensor_1 = ['sensors/sen_x1_1.csv', 'sensors/sen_x1_2.csv', 'sensors/sen_x1_3.csv', 'sensors/sen_x1_4.csv',
+                'sensors/sen_x1_5.csv']
+    sensor_2 = ['sensors/sen_x2_1.csv', 'sensors/sen_x2_2.csv', 'sensors/sen_x2_3.csv', 'sensors/sen_x2_4.csv',
+                'sensors/sen_x2_5.csv']
+    sensor_3 = ['sensors/sen_x3_1.csv', 'sensors/sen_x3_2.csv', 'sensors/sen_x3_3.csv', 'sensors/sen_x3_4.csv',
+                'sensors/sen_x3_5.csv']
+    sensor_4 = ['sensors/sen_x4_1.csv', 'sensors/sen_x4_2.csv', 'sensors/sen_x4_3.csv', 'sensors/sen_x4_4.csv',
+                'sensors/sen_x4_5.csv']
+    sensor_5 = ['sensors/sen_x5_1.csv', 'sensors/sen_x5_2.csv', 'sensors/sen_x5_3.csv', 'sensors/sen_x5_4.csv',
+                'sensors/sen_x5_5.csv']
+    tests = [container_1, container_2, container_3, lid_1, lid_2, lid_3, tube, damaged_tube, sensor_1, sensor_2, sensor_3, sensor_4, sensor_5]
 
     # Count passed and failed tests
     passed_tests = 0
