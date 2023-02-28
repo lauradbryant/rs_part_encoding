@@ -1,11 +1,14 @@
-import csv
 import random
+import math
+import numpy as np
 from reedsolo import RSCodec
+from array import array
 
 # Half of this many digits can be different across instances of the same part
-CHECK = 3000
+CHECK = 6000
 
 # The exponent for our galois field: code lengths of up to 2^{C_EXP} are supported
+# We have 500 rows x 3 columns x 5 digits = 7500
 C_EXP = 14
 
 # Increase the galois field from default to enable longer codewords
@@ -17,9 +20,6 @@ global _bytearray
 if C_EXP <= 8:
     _bytearray = bytearray
 else:
-    from array import array
-
-
     def _bytearray(obj=0, encoding="latin-1"):
         if isinstance(obj, str):  # obj is a string, convert to list of ints
             obj = obj.encode(encoding)
@@ -52,23 +52,24 @@ class Instance:
             """
         self.check_digits = check_digits
         data = _bytearray()
-        with open(input_file, newline='') as csvfile:
-            document_reader = csv.reader(csvfile, delimiter=',', quotechar='"')
-            for row in document_reader:
-                first_value = row[1]
-                second_value = row[2]
-                # Assign the first 5 digits in the second column of the data to the next 5 places in our bytearray
-                i = 0
-                while i < 6:
-                    if first_value[i].isdigit():
-                        data.append(int(first_value[i]))
-                    i = i + 1
-                # Assign the first 5 digits in the third column of the data to the next 5 places in our bytearray
-                j = 0
-                while j < 6:
-                    if second_value[j].isdigit():
-                        data.append(int(second_value[j]))
-                    j = j + 1
+        with open(input_file, 'rb') as f:
+            file_reader = np.load(f, allow_pickle=True)
+            for row in file_reader:
+                for val in row:
+                    for i in range(0, 5):
+                        # Assign the first 5 digits of each value to the next 5 places in our bytearray
+                        if val == 0:
+                            data.append(0)
+                        else:
+                            if val < 0:
+                                val = val * -1
+                            if 0 < val < 1:
+                                val = val * 10
+                            digits = int(math.log10(val))
+                            first_digit = int(val / pow(10, digits))
+                            data.append(first_digit)
+                            val = val - (first_digit * pow(10, digits))
+
         self.data = data
         encoded = data
         encoded.extend(self.check_digits)
@@ -92,21 +93,21 @@ class Part:
     This class initializes instances of candidates and determines if their associated codeword is in the code or not.
     """
 
-    def __init__(self, master_csv_file_name):
+    def __init__(self, master_file_name):
         """
         Constructor for the Part class which initializes master as an Instance and calculates the check digits.
-        :param master_csv_file_name: The name of the csv file that contains the data that will be used as the master.
+        :param master_file_name: The name of the numpy file that contains the data that will be used as the master.
         """
-        self.master = Instance(master_csv_file_name)
+        self.master = Instance(master_file_name)
         self.master.calculate_check_digits()
 
-    def check_candidate(self, candidate_csv_file_name):
+    def check_candidate(self, candidate_file_name):
         """
         Determines if the candidate for this Part is an Instance or not.
-        :param candidate_csv_file_name: The name of the csv file that might be an instance of this part.
+        :param candidate_file_name: The name of the numpy file that might be an instance of this part.
         :return: A boolean true if the candidate is an instance of the part and false otherwise.
         """
-        candidate = Instance(candidate_csv_file_name, self.master.check_digits)
+        candidate = Instance(candidate_file_name, self.master.check_digits)
         try:
             rsc.decode(candidate.data)
             is_instance = True
@@ -114,15 +115,15 @@ class Part:
             is_instance = False
         return is_instance
 
-    def num_differences(self, candidate_csv_file_name):
+    def num_differences(self, candidate_file_name):
         """
         Counts the number of differences between the candidate and the master.
         Useful for determining appropriate values for CHECK because CHECK can be no smaller than double the number
         of differences for a true instance and no larger than double the number of differences for a false instance.
-        :param candidate_csv_file_name: The name of the csv file that we want to check the differences between.
+        :param candidate_file_name: The name of the numpy file that we want to check the differences between.
         :return: The integer number of differences between the two data sets.
         """
-        candidate = Instance(candidate_csv_file_name)
+        candidate = Instance(candidate_file_name)
         num_diff = 0
         for i in range(len(self.master.data)):
             if self.master.data[i] != candidate.data[i]:
@@ -132,31 +133,32 @@ class Part:
 
 def main():
     # Initialize the testing data
-    container_1  = ['container/con_Ax1_1.csv', 'container/con_Ax1_2.csv', 'container/con_Ax1_3.csv',
-                    'container/con_Ax1_4.csv', 'container/con_Ax1_5.csv']
-    container_2 = ['container/con_Bx2_1.csv', 'container/con_Bx2_2.csv', 'container/con_Bx2_3.csv',
-                   'container/con_Bx2_4.csv', 'container/con_Bx2_5.csv', 'container/con_Bx2_6.csv',
-                   'container/con_Bx2_7.csv', 'container/con_Bx2_8.csv', 'container/con_Bx2_9.csv']
-    container_3 = ['container/con_Cx3_1.csv', 'container/con_Cx3_2.csv', 'container/con_Cx3_3.csv',
-                   'container/con_Cx3_4.csv', 'container/con_Cx3_5.csv']
-    lid_1 = ['lid/lid_Ax4_1.csv', 'lid/lid_Ax4_2.csv', 'lid/lid_Ax4_3.csv', 'lid/lid_Ax4_4.csv', 'lid/lid_Ax4_5.csv']
-    lid_2 = ['lid/lid_Bx5_1.csv', 'lid/lid_Bx5_2.csv', 'lid/lid_Bx5_3.csv', 'lid/lid_Bx5_4.csv', 'lid/lid_Bx5_5.csv',
-             'lid/lid_Bx5_6.csv', 'lid/lid_Bx5_7.csv', 'lid/lid_Bx5_8.csv', 'lid/lid_Bx5_9.csv']
-    lid_3 = ['lid/lid_Cx6_1.csv', 'lid/lid_Cx6_2.csv', 'lid/lid_Cx6_3.csv', 'lid/lid_Cx6_4.csv', 'lid/lid_Cx6_5.csv']
-    tube = ['tube/tube_Dx7_1.csv', 'tube/tube_Dx7_2.csv', 'tube/tube_Dx7_3.csv', 'tube/tube_Dx7_4.csv',
-            'tube/tube_Dx7_5.csv']
-    damaged_tube = ['tube/tube_Dx7_1_damage.csv', 'tube/tube_Dx7_2_damage.csv', 'tube/tube_Dx7_3_damage.csv']
-    sensor_1 = ['sensors/sen_x1_1.csv', 'sensors/sen_x1_2.csv', 'sensors/sen_x1_3.csv', 'sensors/sen_x1_4.csv',
-                'sensors/sen_x1_5.csv']
-    sensor_2 = ['sensors/sen_x2_1.csv', 'sensors/sen_x2_2.csv', 'sensors/sen_x2_3.csv', 'sensors/sen_x2_4.csv',
-                'sensors/sen_x2_5.csv']
-    sensor_3 = ['sensors/sen_x3_1.csv', 'sensors/sen_x3_2.csv', 'sensors/sen_x3_3.csv', 'sensors/sen_x3_4.csv',
-                'sensors/sen_x3_5.csv']
-    sensor_4 = ['sensors/sen_x4_1.csv', 'sensors/sen_x4_2.csv', 'sensors/sen_x4_3.csv', 'sensors/sen_x4_4.csv',
-                'sensors/sen_x4_5.csv']
-    sensor_5 = ['sensors/sen_x5_1.csv', 'sensors/sen_x5_2.csv', 'sensors/sen_x5_3.csv', 'sensors/sen_x5_4.csv',
-                'sensors/sen_x5_5.csv']
-    tests = [container_1, container_2, container_3, lid_1, lid_2, lid_3, tube, damaged_tube, sensor_1, sensor_2, sensor_3, sensor_4, sensor_5]
+    container_1 = ['container/con_Ax1_1.npy', 'container/con_Ax1_2.npy', 'container/con_Ax1_3.npy',
+                   'container/con_Ax1_4.npy', 'container/con_Ax1_5.npy']
+    container_2 = ['container/con_Bx2_1.npy', 'container/con_Bx2_2.npy', 'container/con_Bx2_3.npy',
+                   'container/con_Bx2_4.npy', 'container/con_Bx2_5.npy', 'container/con_Bx2_6.npy',
+                   'container/con_Bx2_7.npy', 'container/con_Bx2_8.npy', 'container/con_Bx2_9.npy']
+    container_3 = ['container/con_Cx3_1.npy', 'container/con_Cx3_2.npy', 'container/con_Cx3_3.npy',
+                   'container/con_Cx3_4.npy', 'container/con_Cx3_5.npy']
+    lid_1 = ['lid/lid_Ax4_1.npy', 'lid/lid_Ax4_2.npy', 'lid/lid_Ax4_3.npy', 'lid/lid_Ax4_4.npy', 'lid/lid_Ax4_5.npy']
+    lid_2 = ['lid/lid_Bx5_1.npy', 'lid/lid_Bx5_2.npy', 'lid/lid_Bx5_3.npy', 'lid/lid_Bx5_4.npy', 'lid/lid_Bx5_5.npy',
+             'lid/lid_Bx5_6.npy', 'lid/lid_Bx5_7.npy', 'lid/lid_Bx5_8.npy', 'lid/lid_Bx5_9.npy']
+    lid_3 = ['lid/lid_Cx6_1.npy', 'lid/lid_Cx6_2.npy', 'lid/lid_Cx6_3.npy', 'lid/lid_Cx6_4.npy', 'lid/lid_Cx6_5.npy']
+    tube = ['tube/tube_Dx7_1.npy', 'tube/tube_Dx7_2.npy', 'tube/tube_Dx7_3.npy', 'tube/tube_Dx7_4.npy',
+            'tube/tube_Dx7_5.npy']
+    damaged_tube = ['tube/tube_Dx7_1_damage.npy', 'tube/tube_Dx7_2_damage.npy', 'tube/tube_Dx7_3_damage.npy']
+    sensor_1 = ['sensors/sen_x1_1.npy', 'sensors/sen_x1_2.npy', 'sensors/sen_x1_3.npy', 'sensors/sen_x1_4.npy',
+                'sensors/sen_x1_5.npy']
+    sensor_2 = ['sensors/sen_x2_1.npy', 'sensors/sen_x2_2.npy', 'sensors/sen_x2_3.npy', 'sensors/sen_x2_4.npy',
+                'sensors/sen_x2_5.npy']
+    sensor_3 = ['sensors/sen_x3_1.npy', 'sensors/sen_x3_2.npy', 'sensors/sen_x3_3.npy', 'sensors/sen_x3_4.npy',
+                'sensors/sen_x3_5.npy']
+    sensor_4 = ['sensors/sen_x4_1.npy', 'sensors/sen_x4_2.npy', 'sensors/sen_x4_3.npy', 'sensors/sen_x4_4.npy',
+                'sensors/sen_x4_5.npy']
+    sensor_5 = ['sensors/sen_x5_1.npy', 'sensors/sen_x5_2.npy', 'sensors/sen_x5_3.npy', 'sensors/sen_x5_4.npy',
+                'sensors/sen_x5_5.npy']
+    tests = [container_1, container_2, container_3, lid_1, lid_2, lid_3, tube, damaged_tube, sensor_1, sensor_2,
+             sensor_3, sensor_4, sensor_5]
 
     # Count passed and failed tests
     passed_tests = 0
@@ -170,7 +172,7 @@ def main():
 
         # Find the minimum and maximum values for CHECK
         min_check = 0
-        max_check = 5000
+        max_check = 7500
         for instance in part:
             num_diff = master.num_differences(instance)
             if 2 * num_diff > min_check:
