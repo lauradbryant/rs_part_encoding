@@ -4,15 +4,9 @@ import numpy as np
 from reedsolo import RSCodec
 from array import array
 
-# Half of this many digits can be different across instances of the same part
-CHECK = 6000
-
 # The exponent for our galois field: code lengths of up to 2^{C_EXP} are supported
 # We have 500 rows x 3 columns x 5 digits = 7500
 C_EXP = 14
-
-# Increase the galois field from default to enable longer codewords
-rsc = RSCodec(CHECK, c_exp=C_EXP)
 
 # This is copied from reedsolo.py so that we can work with the same data type
 # Redefine _bytearray() in case we need to support integers or messages of length > 256
@@ -40,7 +34,7 @@ class Instance:
     This class calculates and keeps track of the codeword associated with a particular instance of a part.
     """
 
-    def __init__(self, input_file, check_digits=_bytearray()):
+    def __init__(self, num_checks, input_file, check_digits=_bytearray()):
         """
                 Constructor for the Instance class which represents an instance of a part.
                 Sets the variables of data, encoded, and check digits to the appropriate values.
@@ -50,6 +44,7 @@ class Instance:
                                         cases should be the check digits belonging to the master.
                 :return: nothing
             """
+        self.num_checks = num_checks
         self.check_digits = check_digits
         data = _bytearray()
         with open(input_file, 'rb') as f:
@@ -80,9 +75,10 @@ class Instance:
         Method to calculate the check digits for the master instance.
         :return: self.check_digits The bytearray of check digits now associated with this instance.
         """
+        rsc = RSCodec(self.num_checks, c_exp=C_EXP)
         encoded = rsc.encode(self.data)
         self.encoded = encoded
-        check_digits = self.encoded[-CHECK:]
+        check_digits = self.encoded[-self.num_checks:]
         self.check_digits = check_digits
         return self.check_digits
 
@@ -93,12 +89,13 @@ class Part:
     This class initializes instances of candidates and determines if their associated codeword is in the code or not.
     """
 
-    def __init__(self, master_file_name):
+    def __init__(self, num_checks, master_file_name):
         """
         Constructor for the Part class which initializes master as an Instance and calculates the check digits.
         :param master_file_name: The name of the numpy file that contains the data that will be used as the master.
         """
-        self.master = Instance(master_file_name)
+        self.num_checks = num_checks
+        self.master = Instance(self.num_checks, master_file_name)
         self.master.calculate_check_digits()
 
     def check_candidate(self, candidate_file_name):
@@ -107,7 +104,9 @@ class Part:
         :param candidate_file_name: The name of the numpy file that might be an instance of this part.
         :return: A boolean true if the candidate is an instance of the part and false otherwise.
         """
-        candidate = Instance(candidate_file_name, self.master.check_digits)
+        # Increase the galois field from default to enable longer codewords
+        rsc = RSCodec(self.num_checks, c_exp=C_EXP)
+        candidate = Instance(self.num_checks, candidate_file_name, self.master.check_digits)
         try:
             rsc.decode(candidate.data)
             is_instance = True
@@ -115,20 +114,56 @@ class Part:
             is_instance = False
         return is_instance
 
-    def num_differences(self, candidate_file_name):
-        """
-        Counts the number of differences between the candidate and the master.
-        Useful for determining appropriate values for CHECK because CHECK can be no smaller than double the number
-        of differences for a true instance and no larger than double the number of differences for a false instance.
-        :param candidate_file_name: The name of the numpy file that we want to check the differences between.
-        :return: The integer number of differences between the two data sets.
-        """
-        candidate = Instance(candidate_file_name)
-        num_diff = 0
-        for i in range(len(self.master.data)):
-            if self.master.data[i] != candidate.data[i]:
-                num_diff += 1
-        return num_diff
+
+def num_differences(master_file_name, candidate_file_name):
+    """
+    Counts the number of differences between the candidate and the master.
+    Useful for determining appropriate values for CHECK because CHECK can be no smaller than double the number
+    of differences for a true instance and no larger than double the number of differences for a false instance.
+    :param candidate_file_name: The name of the numpy file that we want to check the differences between.
+    :return: The integer number of differences between the two data sets.
+    """
+    master_data = _bytearray()
+    candidate_data = _bytearray()
+    with open(master_file_name, 'rb') as f:
+        master = np.load(f, allow_pickle=True)
+        for row in master:
+            for val in row:
+                for i in range(0, 5):
+                    # Assign the first 5 digits of each value to the next 5 places in our bytearray
+                    if val == 0:
+                        master_data.append(0)
+                    else:
+                        if val < 0:
+                            val = val * -1
+                        if 0 < val < 1:
+                            val = val * 10
+                        digits = int(math.log10(val))
+                        first_digit = int(val / pow(10, digits))
+                        master_data.append(first_digit)
+                        val = val - (first_digit * pow(10, digits))
+    with open(candidate_file_name, 'rb') as g:
+        candidate = np.load(g, allow_pickle=True)
+        for row in candidate:
+            for val in row:
+                for i in range(0, 5):
+                    # Assign the first 5 digits of each value to the next 5 places in our bytearray
+                    if val == 0:
+                        candidate_data.append(0)
+                    else:
+                        if val < 0:
+                            val = val * -1
+                        if 0 < val < 1:
+                            val = val * 10
+                        digits = int(math.log10(val))
+                        first_digit = int(val / pow(10, digits))
+                        candidate_data.append(first_digit)
+                        val = val - (first_digit * pow(10, digits))
+    num_diff = 0
+    for i in range(len(master_data)):
+        if master_data[i] != candidate_data[i]:
+            num_diff += 1
+    return num_diff
 
 
 def main():
@@ -166,47 +201,52 @@ def main():
 
     # Run Test Cases
     for part in tests:
+        # Find the minimum and maximum values for CHECK
         master_name = part[random.randint(0, len(part) - 1)]
-        master = Part(master_name)
         print("\nTesting with " + str(master_name) + " as master.")
 
-        # Find the minimum and maximum values for CHECK
         min_check = 0
         max_check = 7500
         for instance in part:
-            num_diff = master.num_differences(instance)
+            num_diff = num_differences(master_name, instance)
             if 2 * num_diff > min_check:
                 min_check = 2 * num_diff
         for diff_part in tests:
             if diff_part != part:
                 for instance in diff_part:
-                    num_diff = master.num_differences(instance)
+                    num_diff = num_differences(master_name, instance)
                     if 2 * num_diff < max_check:
                         max_check = 2 * num_diff
-        print("CHECK should be between " + str(min_check) + " and " + str(max_check) +
-              ". It is currently set to " + str(CHECK) + ".")
+        # Half of this many digits can be different across instances of the same part
+        check = int((min_check + max_check) / 2)
+        print("Check should be between " + str(min_check) + " and " + str(max_check) +
+              ". It is currently set to " + str(check) + ".")
 
-        # Check that all instances of this part decode correctly
-        for instance in part:
-            if master.check_candidate(instance):
-                print("Test case " + instance + " passed.")
-                passed_tests += 1
-            else:
-                print("TEST CASE " + instance + " FAILED.")
-                failed_tests += 1
-
-        # Check that a random instance of each of the other parts does not decode to the master
-        for diff_part in tests:
-            if diff_part != part:
-                instance = diff_part[random.randint(0, len(diff_part) - 1)]
-                if not master.check_candidate(instance):
+        if min_check >= max_check:
+            print("Hamming distance is too large to be decoded with a Reed-Solomon Code.\n")
+        else:
+            master = Part(check, master_name)
+            # Check that all instances of this part decode correctly
+            for instance in part:
+                if master.check_candidate(instance):
                     print("Test case " + instance + " passed.")
                     passed_tests += 1
                 else:
                     print("TEST CASE " + instance + " FAILED.")
                     failed_tests += 1
 
-    print("Failed " + str(failed_tests) + " tests. Passed " + str(passed_tests) + ".")
+            # Check that a random instance of each of the other parts does not decode to the master
+            for diff_part in tests:
+                if diff_part != part:
+                    instance = diff_part[random.randint(0, len(diff_part) - 1)]
+                    if not master.check_candidate(instance):
+                        print("Test case " + instance + " passed.")
+                        passed_tests += 1
+                    else:
+                        print("TEST CASE " + instance + " FAILED.")
+                        failed_tests += 1
+
+            print("Failed " + str(failed_tests) + " tests. Passed " + str(passed_tests) + ".")
 
 
 if __name__ == '__main__':
