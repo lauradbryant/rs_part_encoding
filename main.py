@@ -1,8 +1,10 @@
+import csv
 import random
 import math
 import numpy as np
 from reedsolo import RSCodec
 from array import array
+import matplotlib.pyplot as plt
 
 # The exponent for our galois field: code lengths of up to 2^{C_EXP} are supported
 # We have 500 rows x 3 columns x 5 digits = 7500
@@ -107,6 +109,8 @@ class Part:
         # Increase the galois field from default to enable longer codewords
         rsc = RSCodec(self.num_checks, c_exp=C_EXP)
         candidate = Instance(self.num_checks, candidate_file_name, self.master.check_digits)
+        maxerrors, maxerasures = rsc.maxerrata(verbose=True)
+        print(maxerrors, maxerasures)
         try:
             rsc.decode(candidate.data)
             is_instance = True
@@ -166,6 +170,75 @@ def num_differences(master_file_name, candidate_file_name):
     return num_diff
 
 
+def make_graph(tests, part_names):
+    """
+        Graphs each part with its average number of check digits and the range that the check digits can be set to.
+        A higher range of acceptable check digits makes a part more suitable for being decoded with a Reed-Solomon code.
+        A smaller average number of check digits is better, and any value over 7500 means that the part cannot be
+        used as a Reed_Solomon code.
+        :param tests: The array of testing sets.
+        :param part_names: The array of part names.
+        """
+
+    # Cycle through each part and calculate the maximum and minimum number of check digits
+    # with open('check_digit_stats.csv', 'w', newline='') as file:
+    #     writer = csv.writer(file)
+    #     row_titles = ["part", "minimum", "maximum", "difference", "mean"]
+    #     writer.writerow(row_titles)
+    #     print("Calculating graph values...")
+    #     for part in tests:
+    #         cum_max = 0
+    #         for master in part:
+    #             minimum = 0
+    #             maximum = 7500
+    #             for instance in part:
+    #                 num_diff = num_differences(master, instance)
+    #                 if 2 * num_diff > minimum:
+    #                     minimum = 2 * num_diff
+    #             for diff_part in tests:
+    #                 if diff_part != part:
+    #                     for instance in diff_part:
+    #                         num_diff = num_differences(master, instance)
+    #                         if 2 * num_diff < maximum:
+    #                             maximum = 2 * num_diff
+    #             cum_max += maximum
+    #         avg_max = cum_max / len(part)
+    #         row = [part_names[tests.index(part)], minimum, avg_max, avg_max - minimum, (avg_max + minimum) / 2]
+    #         writer.writerow(row)
+
+    # Graph
+    print("Creating graph...")
+    part = []
+    differences = []
+    avg_values = []
+
+    with open('check_digit_stats.csv', 'r') as csvfile:
+        lines = csv.reader(csvfile, delimiter=',')
+        next(lines)
+        for row in lines:
+            part.append(row[0])
+            differences.append(int(float(row[3])))
+            avg_values.append(int(float(row[4])))
+
+    # Plot the difference between maximum and minimum checks
+    # print("Plotting average distance...")
+    # plt.plot(part, differences, "o")
+    # plt.xticks(rotation=50, minor=False)
+    # plt.xlabel('Part')
+    # plt.ylabel('Acceptable Range for Check Digits')
+    # plt.title('Parts and the Acceptable Size of Range for Check Digits ', fontsize=20)
+
+    # Plot the average check number
+    print("Plotting average check value...")
+    plt.plot(part, avg_values, "o")
+    plt.xticks(rotation=50, minor=False)
+    plt.xlabel('Part')
+    plt.ylabel('Average Check Value')
+    plt.title('Parts and their Average Check Values', fontsize=20)
+
+    plt.show()
+
+
 def main():
     # Initialize the testing data
     container_1 = ['container/con_Ax1_1.npy', 'container/con_Ax1_2.npy', 'container/con_Ax1_3.npy',
@@ -194,8 +267,14 @@ def main():
                 'sensors/sen_x5_5.npy']
     tests = [container_1, container_2, container_3, lid_1, lid_2, lid_3, tube, damaged_tube, sensor_1, sensor_2,
              sensor_3, sensor_4, sensor_5]
+    part_names = ['container_1', 'container_2', 'container_3', 'lid_1', 'lid_2', 'lid_3', 'tube', 'damaged_tube',
+                  'sensor_1', 'sensor_2', 'sensor_3', 'sensor_4', 'sensor_5']
+
+    # Graph the average check values, comment this line out to only run tests
+    make_graph(tests, part_names)
 
     # Count passed and failed tests
+    print("Testing...")
     passed_tests = 0
     failed_tests = 0
 
