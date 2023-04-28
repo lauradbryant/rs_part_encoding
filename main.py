@@ -221,21 +221,16 @@ def make_graph(tests, part_names):
             avg_values.append(int(float(row[4])))
 
     # Plot the difference between maximum and minimum checks
-    # print("Plotting average distance...")
-    # plt.plot(part, differences, "o")
-    # plt.xticks(rotation=50, minor=False)
-    # plt.xlabel('Part')
-    # plt.ylabel('Acceptable Range for Check Digits')
-    # plt.title('Parts and the Acceptable Size of Range for Check Digits ', fontsize=20)
+    print("Plotting average distance...")
+    plt.plot(part, differences, "o", color='r', label='Acceptable Range for Number of Check Digits')
+    plt.xticks(rotation=50, minor=False)
+    plt.xlabel('Part')
 
     # Plot the average check number
     print("Plotting average check value...")
-    plt.plot(part, avg_values, "o")
-    plt.xticks(rotation=50, minor=False)
-    plt.xlabel('Part')
-    plt.ylabel('Average Check Value')
-    plt.title('Parts and their Average Check Values', fontsize=20)
-
+    plt.plot(part, avg_values, "o", color='b', label='Number of Check Digits')
+    plt.title('Parts and Their Check Digits', fontsize=20)
+    plt.legend()
     plt.show()
 
 
